@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Auto masaniello",
+  "version": "0.1",
+  "description": "Calcula y actualiza el monto segun la gestion de capital Masaniello",
+  "permissions": ["scripting", "storage"],
+  "host_permissions": ["https://pocketoption.com/*"],
+  "icons": {
+    "128": "icon.png"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://pocketoption.com/*"], 
+      "js": [
+        "content-scripts/variables.js",
+        "content-scripts/lib/DOM.js",
+        "content-scripts/lib/utils.js",
+        "content-scripts/lib/masaniello.js",
+        "content-scripts/content.js"
+      ]
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}

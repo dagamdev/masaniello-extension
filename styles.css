@@ -1,0 +1,105 @@
+* {
+  color-scheme: light dark;
+  margin: 0;
+}
+
+
+html {
+  border-radius: 4px;
+  margin: 0;
+  display: inline-block;
+  width: fit-content;
+  height: fit-content;
+}
+
+body {
+  width: auto;
+  border-radius: 4px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  row-gap: 16px;
+  align-items: center;
+}
+
+button {
+  cursor: pointer;
+  padding: 6px 12px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+fieldset {
+  display: flex;
+  flex-direction: column;
+  row-gap: 12px;
+
+  & label {
+    display: flex;
+    column-gap: 16px;
+    justify-content: space-between;
+  }
+}
+
+#settings input {
+  width: 130px;
+}
+
+#settings span {
+  white-space: nowrap;
+}
+
+section {
+  display: flex;
+  gap: 16px;
+}
+
+.group {
+  flex-wrap: wrap;
+}
+
+.sub-group {
+  display: flex;
+  gap: 8px;
+}
+
+.group section {
+  border: solid 1px gray;
+  flex-direction: column;
+  padding: 12px;
+  border-radius: 4px;
+
+  & div {
+    display: flex;
+    flex-direction: column;
+    row-gap: 8px;
+  }
+
+  & p {
+    display: flex;
+    column-gap: 12px;
+    justify-content: space-between;
+    white-space: nowrap;
+  }
+}
+
+#message {
+  &.green {
+    background-color: oklch(72.3% 0.219 149.579);
+  }
+}
+
+.group .options{
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.features label {
+  display: flex;
+  column-gap: 6px;
+  cursor: pointer;
+}

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestion Masaniello</title>
+  <script src="popup.js" defer></script>
+  <script src="popup/DOM.js" defer></script>
+  <script src="popup/masaniello.js" defer></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <h1>Auto Masaniello</h1>
+  <section class="group">
+    <div class="sub-group">
+      <form id="settings">
+        <fieldset>
+          <legend>Settings</legend>
+          <label>
+            <span>Amount to risk</span>
+            <input id="amountToRisk" type="text" value="100">
+          </label>
+          <label>
+            <span>Total operations</span>
+            <input id="totalOperations" type="text">
+          </label>
+          <label>
+            <span>ITMs</span>
+            <input id="ITMs" type="text">
+          </label>
+          <label>
+            <span>Profit percent</span>
+            <input id="profitPercent" type="text">
+          </label>
+        </fieldset>
+      </form>
+  
+      <section class="target">
+        <h2>Target</h2>
+  
+        <div>
+          <p id="profitPercent"><span>Profit percent:</span><b>10%</b></p>
+          <p id="finalBalance"><span>Final balance:</span><b>100</b></p>
+          <p id="netProfit"><span>Net profit:</span><b>10</b></p>
+        </div>
+      </section>
+    </div>
+
+    <section class="data">
+      <div>
+        <p>Win operations: <b id="winOperations">0/4</b></p>
+        <p>Losing operations: <b id="losingOperations">0/6</b></p>
+        <p>Operations: <b id="totalOperations">0/10</b></p>
+        <p>Next amount: <b id="nextAmount">1</b></p>
+      </div>
+      
+    </section>
+
+    <section class="features">
+      <label>
+        <input id="autoStake" type="checkbox">
+        <span>Auto stake</span>
+      </label>
+      <label>
+        <input id="autoCycle" type="checkbox">
+        <span>Auto cycle</span>
+      </label>
+    </section>
+    
+    <div class="options">
+      <p id="message"></p>
+    </div>
+  </section>
+
+  <button id='openInTab'>Open in new tab</button>
+</body>
+</html>
