@@ -118,7 +118,8 @@ function getMasanielloAmount (fixed) {
     if (isLast) return balance
 
     const valor1 = winnins + 1 >= wins ? 1 : matris[losses + winnins + 1][winnins + 1]
-    const valor2 = matris[losses + winnins + 1]?.[winnins] || 1
+    const valor2 = matris[losses + winnins + 1]?.[winnins]
+    if (typeof valor2 === 'undefined') return balance
     
     return (1 - profit * valor1 / (valor2 + (profit - 1) * valor1)) * balance
   }

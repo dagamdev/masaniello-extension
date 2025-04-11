@@ -51,11 +51,10 @@ window.addEventListener("load", () => {
             }
           } else if (!nexAmount) {
             alert('Has perdido con tu gestion Masaniello')
-            return
           }
 
           chrome.runtime.sendMessage({ action: "updateData", operations, masanielloSettings: settings })
-          setInputValue(nexAmount)
+          setInputValue(nexAmount || 1)
         }
       })
     })
@@ -79,7 +78,7 @@ function enableFeature (featureType, newSettings, newOperations) {
     settings = newSettings
     operations = newOperations
     calculateMatris()
-    setInputValue(getMasanielloAmount(2))
+    setInputValue(getMasanielloAmount())
   } else {
     autoCycle = true
   }
@@ -94,5 +93,6 @@ function disableFeature (featureType) {
 
   if (featureType === 'autoStake') {
     autoStake = false
+    setInputValue(1)
   } else autoCycle = false  
 }

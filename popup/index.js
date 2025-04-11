@@ -2,9 +2,13 @@
 
 let tabId
 
+chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+  console.log(tabs, tabs[0])
+})
+
 document.addEventListener('DOMContentLoaded', () => {
   chrome.storage.session.get(['autoStake', 'autoCycle'], (result) => {
-    // console.log(result)
+    console.log(result)
     
     if (result.autoStake) {
       getAutoStakeInput().checked = result.autoStake
@@ -17,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
   })
 
   chrome.storage.local.get(['masanielloSettings', 'operations'], (result) => {
-    // console.log(result)
+    console.log(result)
     
     if (result.masanielloSettings) settings = result.masanielloSettings
     if (result.operations) operations = result.operations
@@ -33,16 +37,10 @@ document.addEventListener('DOMContentLoaded', () => {
   })
 })
 
-// Obtener el estado guardado
-
 document.addEventListener('click', ev => {
-  // console.log(ev.target instanceof HTMLElement)
   const target = ev.target
 
   if (target instanceof HTMLButtonElement) {
-
-    
-
     if (target.id === 'openInTab') {
       chrome.tabs.create({ url: chrome.runtime.getURL("popup.html") })
     }
@@ -80,7 +78,7 @@ document.addEventListener('change', ev => {
     ev.target.value = value
     settings[id] = value
 
-    chrome.storage.local.set({ ['masanielloSettings']: settings, operations: [] })
+    chrome.storage.local.set({ ['masanielloSettings']: settings })
     calculateMatris()
     updateData()
   }
@@ -109,6 +107,18 @@ document.addEventListener('change', ev => {
           }
         })
       })
+    })
+  } else if (autoStake) {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs.length > 0) {
+        chrome.scripting.executeScript({
+          target: { tabId: tabs[0].id },
+          function(settings, operations) {
+            enableFeature('autoStake', settings, operations)
+          },
+          args: [settings, operations]
+        })
+      }
     })
   }
 })
@@ -155,24 +165,23 @@ function updateData () {
       chrome.storage.local.set({ operations })
       button.remove()
       updateData()
+      if (autoStake) {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+          if (tabs.length > 0) {
+            chrome.scripting.executeScript({
+              target: { tabId: tabs[0].id },
+              function(settings, operations) {
+                enableFeature('autoStake', settings, operations)
+              },
+              args: [settings, operations]
+            })
+          }
+        })
+      }
 
       button.removeEventListener('click', () => {
         console.log('Remove event clear operations')
       })
-    })
-  }
-
-  if (autoStake) {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs.length > 0) {
-        chrome.scripting.executeScript({
-          target: { tabId: tabs[0].id },
-          function(settings, operations) {
-            enableFeature('autoStake', settings, operations)
-          },
-          args: [settings, operations]
-        })
-      }
     })
   }
 }

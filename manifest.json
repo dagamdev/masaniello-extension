@@ -17,7 +17,6 @@
       "js": [
         "content-scripts/variables.js",
         "content-scripts/lib/DOM.js",
-        "content-scripts/lib/utils.js",
         "content-scripts/lib/masaniello.js",
         "content-scripts/content.js"
       ]
