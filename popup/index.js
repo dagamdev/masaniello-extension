@@ -1,22 +1,33 @@
 'use strict'
-
+const featuresIDs = ['autoStake', 'autoCycle', 'compoundEarnings']
+const inputsIds = ['amountToRisk', 'totalOperations', 'ITMs', 'profitPercent']
 let tabId
 
 chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-  console.log(tabs, tabs[0])
+  console.log(tabs, tabs[0], tabs[0].url)
 })
 
+const port = chrome.runtime.connect({ name: "extensionTab" });
+
+port.onMessage.addListener((msg) => {
+  console.log("Mensaje recibido desde content.js:", msg);
+  if (msg.action === 'connection') {
+    isPoketOption = msg.data.isPoketOption
+    updateData()
+  }
+})
+port.postMessage({ action: 'connection' });
+
 document.addEventListener('DOMContentLoaded', () => {
-  chrome.storage.session.get(['autoStake', 'autoCycle'], (result) => {
+  chrome.storage.local.get(['autoStake', 'autoCycle', 'compoundEarnings'], (result) => {
     console.log(result)
     
-    if (result.autoStake) {
-      getAutoStakeInput().checked = result.autoStake
-      autoStake = result.autoStake
-    }
-    if (result.autoCycle) {
-      getAutoCycleInput().checked = result.autoCycle
-      autoCycle = result.autoCycle
+    for (const featureID of featuresIDs) {
+      if (result[featureID]) {
+        const state = result[featureID]
+        document.getElementById(featureID).checked = state
+        features[featureID] = state
+      }
     }
   })
 
@@ -69,11 +80,13 @@ document.addEventListener('change', ev => {
   const {id} = ev.target
 
   if (inputsIds.some(id => id === id)) {
+    console.log(ev.target.value)
     let value = ''
     if (id === 'profitPercent') {
-      value = +ev.target.value.replace(',', '.').slice(0, -1)
+      value = parseFloat(ev.target.value)
       value += '%'
     } else value = +ev.target.value.replace(',', '.')
+    console.log({value})
 
     ev.target.value = value
     settings[id] = value
@@ -83,14 +96,12 @@ document.addEventListener('change', ev => {
     updateData()
   }
 
-  if (id === 'autoStake' || id === 'autoCycle') {
-    chrome.storage.session.get([id], (result) => {
+  if (featuresIDs.some(feature => feature === id)) {
+    chrome.storage.local.get([id], (result) => {
       const newState = !result[id]
-      if (id === 'autoStake') autoStake = newState
-      if (id === 'autoCycle') autoCycle = newState
       
       // Guardar el nuevo estado
-      chrome.storage.session.set({ [id]: newState }, () => {
+      chrome.storage.local.set({ [id]: newState }, () => {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
           if (tabs.length > 0) {
             chrome.scripting.executeScript({
@@ -108,7 +119,7 @@ document.addEventListener('change', ev => {
         })
       })
     })
-  } else if (autoStake) {
+  } else if (features.autoStake) {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs.length > 0) {
         chrome.scripting.executeScript({
@@ -128,12 +139,13 @@ function updateData () {
   const amountToRisk = +settings.amountToRisk
   const netProfit = amountToRisk * profitPercent
   // console.log({profitPercent, amountToRisk, netProfit})
+  console.log({isPoketOption})
   
   document.querySelector('.target #profitPercent b').textContent = (profitPercent * 100).toFixed(2) + '%'
-  document.querySelector('.target #finalBalance b').textContent = (amountToRisk + netProfit).toFixed(2)
-  document.querySelector('.target #netProfit b').textContent = netProfit.toFixed(2)
+  document.querySelector('.target #finalBalance b').textContent = isPoketOption ? (amountToRisk + netProfit).toFixed(2) : autoFixNumber(amountToRisk + netProfit)
+  document.querySelector('.target #netProfit b').textContent = isPoketOption ? netProfit.toFixed(2) : autoFixNumber(netProfit)
 
-  const nextAmount = getMasanielloAmount(2)
+  const nextAmount = getMasanielloAmount(isPoketOption ? 2 : undefined)
 
   const wins = operations.filter(o => o).length
   const Losings = operations.filter(o => !o).length

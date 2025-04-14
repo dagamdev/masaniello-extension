@@ -1,0 +1,69 @@
+.masaniello-notification {
+  position: absolute;
+  background-color: gray;
+  z-index: 999;
+  border-radius: 6px;
+  right: 50%;
+  display: flex;
+  font-size: large;
+  justify-content: center;
+  font-weight: bolder;
+
+  animation-name: hideMasanielloNotification;
+  animation-duration: .3s;
+  animation-fill-mode: forwards;
+  animation-timing-function: ease-in;
+
+  &.active {
+    animation-name: showMasanielloNotification;
+    animation-duration: .4s;
+    animation-fill-mode: forwards;
+    animation-timing-function: ease-in-out;
+  }
+
+  &.info {
+    background-color: rgb(33, 115, 246);
+  }
+
+  &.success {
+    background-color: rgb(13, 155, 46);
+  }
+
+  &.error {
+    background-color: rgb(206, 25, 25);
+  }
+
+  & p {
+    padding: 12px;
+    margin: 0;
+  }
+
+  & button {
+    border: none;
+    padding: 12px;
+  }
+}
+
+@keyframes showMasanielloNotification {
+  from {
+    top: -10px;
+    transform: translate(50%, -100%);
+  }
+
+  to {
+    top: 20px;
+    transform: translate(50%, 0);
+  }
+}
+
+@keyframes hideMasanielloNotification {
+  from {
+    top: 20px;
+    transform: translate(50%, 0);
+  }
+
+  to {
+    top: -10px;
+    transform: translate(50%, -100%);
+  }
+}

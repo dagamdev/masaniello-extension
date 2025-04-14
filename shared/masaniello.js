@@ -49,11 +49,11 @@ function calculateMatris () {
 
 /**
  * 
- * @param {number} fixed
+ * @param {number | undefined} fixed
  */
-function getMasanielloAmount (fixed = 2) {
-  const wins = +settings.ITMs
+function getMasanielloAmount (fixed) {
   const total = +settings.totalOperations
+  const wins = +settings.ITMs
   const amountToRisk = +settings.amountToRisk
   const profit = +settings.profitPercent.slice(0, -1) / 100 + 1
 
@@ -81,15 +81,16 @@ function getMasanielloAmount (fixed = 2) {
       return 0
     }
     if (op + 1 === total) {
-      return balance.toFixed(fixed)
+      // console.log({balance, fixed: autoFixNumber(balance)})
+      return fixed ? balance.toFixed(fixed) : autoFixNumber(balance)
     }
 
     value = calculateAmount(winnins, losses, op + 2 === total)
     lastAmount = value
   }
 
-  
-  return value.toFixed(fixed)
+  // console.log({value, fixed: autoFixNumber(value)})
+  return fixed ? value.toFixed(fixed) : autoFixNumber(value)
 
   /**
    * 
@@ -103,7 +104,22 @@ function getMasanielloAmount (fixed = 2) {
     const valor1 = winnins + 1 >= wins ? 1 : matris[losses + winnins + 1][winnins + 1]
     const valor2 = matris[losses + winnins + 1]?.[winnins]
     if (typeof valor2 === 'undefined') return balance
-
+    
     return (1 - profit * valor1 / (valor2 + (profit - 1) * valor1)) * balance
+  }
+}
+
+/**
+ * 
+ * @param {number} number 
+ */
+function autoFixNumber (number) {
+  const strNumber = number.toString()
+  if (!strNumber.includes('.')) return number
+  try {
+    return number.toFixed(number.toString().split('.')[1].search(/[1-9]/) + 4)
+  } catch (error) {
+    console.log({number})
+    console.error(error)
   }
 }

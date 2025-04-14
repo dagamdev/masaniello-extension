@@ -1,10 +1,15 @@
 {
   "manifest_version": 3,
   "name": "Auto masaniello",
-  "version": "1",
+  "version": "1.1.1",
   "description": "Calcula y actualiza el monto segun la gestion de capital Masaniello",
-  "permissions": ["scripting", "storage"],
-  "host_permissions": ["https://pocketoption.com/*"],
+  "permissions": ["scripting", "storage", "tabs"],
+  "host_permissions": [
+    "https://pocketoption.com/*",
+    "https://tronpick.io/ultimate.php",
+    "https://tonpick.game/ultimate.php",
+    "https://litepick.io/ultimate.php"
+  ],
   "icons": {
     "128": "icon.png"
   },
@@ -13,12 +18,21 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://pocketoption.com/*"], 
+      "matches": [
+        "https://pocketoption.com/*",
+        "https://tronpick.io/ultimate.php",
+        "https://tonpick.game/ultimate.php",
+        "https://litepick.io/ultimate.php"
+      ], 
       "js": [
         "content-scripts/variables.js",
+        "shared/variables.js",
         "content-scripts/lib/DOM.js",
-        "content-scripts/lib/masaniello.js",
+        "shared/masaniello.js",
         "content-scripts/content.js"
+      ],
+      "css": [
+        "styles/content.css"
       ]
     }
   ],

@@ -4,13 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestion Masaniello</title>
-  <script src="popup/index.js" defer></script>
+  <script src="shared/variables.js" defer></script>
   <script src="popup/DOM.js" defer></script>
-  <script src="popup/masaniello.js" defer></script>
+  <script src="shared/masaniello.js" defer></script>
+  <script src="popup/index.js" defer></script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>Auto Masaniello v1</h1>
+  <h1>Auto Masaniello v1.1.1</h1>
   <section class="group">
     <div class="sub-group">
       <form id="settings">
@@ -64,6 +65,10 @@
       <label>
         <input id="autoCycle" type="checkbox">
         <span>Auto cycle</span>
+      </label>
+      <label>
+        <input id="compoundEarnings" type="checkbox">
+        Compound Earnings
       </label>
     </section>
     
