@@ -82,7 +82,7 @@ function getMasanielloAmount (fixed) {
     }
     if (op + 1 === total) {
       // console.log({balance, fixed: autoFixNumber(balance)})
-      return fixed ? balance.toFixed(fixed) : autoFixNumber(balance)
+      return +balance.toFixed(settings.decimalsLimit)
     }
 
     value = calculateAmount(winnins, losses, op + 2 === total)
@@ -90,7 +90,7 @@ function getMasanielloAmount (fixed) {
   }
 
   // console.log({value, fixed: autoFixNumber(value)})
-  return fixed ? value.toFixed(fixed) : autoFixNumber(value)
+  return +value.toFixed(settings.decimalsLimit)
 
   /**
    * 
@@ -114,10 +114,11 @@ function getMasanielloAmount (fixed) {
  * @param {number} number 
  */
 function autoFixNumber (number) {
-  const strNumber = number.toString()
+  const strNumber = number.toFixed(20)
   if (!strNumber.includes('.')) return number
+
   try {
-    return number.toFixed(number.toString().split('.')[1].search(/[1-9]/) + 4)
+    return number.toFixed(number.toFixed(20).split('.')[1].search(/[1-9]/) + 4)
   } catch (error) {
     console.log({number})
     console.error(error)

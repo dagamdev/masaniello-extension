@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>Auto Masaniello v1.1.1</h1>
+  <h1>Auto Masaniello v1.3.1</h1>
   <section class="group">
     <div class="sub-group">
       <form id="settings">
@@ -33,43 +33,54 @@
             <span>Profit percent</span>
             <input id="profitPercent" type="text">
           </label>
+          <label>
+            <span>Decimals limit</span>
+            <input id="decimalsLimit" type="text">
+          </label>
         </fieldset>
       </form>
   
-      <section class="target">
-        <h2>Target</h2>
+      <div class="sub-group vertical">
+        <section class="target">
+          <h2>Target</h2>
+    
+          <div>
+            <p id="profitPercent"><span>Profit percent:</span><b>10%</b></p>
+            <p id="finalBalance"><span>Final balance:</span><b>100</b></p>
+            <p id="netProfit"><span>Net profit:</span><b>10</b></p>
+          </div>
+        </section>
   
-        <div>
-          <p id="profitPercent"><span>Profit percent:</span><b>10%</b></p>
-          <p id="finalBalance"><span>Final balance:</span><b>100</b></p>
-          <p id="netProfit"><span>Net profit:</span><b>10</b></p>
-        </div>
-      </section>
+        <section class="features">
+          <h2>Features</h2>
+          
+          <div>
+            <label>
+              <input id="autoStake" type="checkbox">
+              <span>Auto stake</span>
+            </label>
+            <label>
+              <input id="autoCycle" type="checkbox">
+              <span>Auto cycle</span>
+            </label>
+            <label>
+              <input id="compoundEarnings" type="checkbox">
+              <span>Compound Earnings</span>
+            </label>
+          </div>
+        </section>
+      </div>
     </div>
 
     <section class="data">
+      <h2>Session data</h2>
+      
       <div>
         <p>Win operations: <b id="winOperations">0/4</b></p>
         <p>Losing operations: <b id="losingOperations">0/6</b></p>
         <p>Operations: <b id="totalOperations">0/10</b></p>
         <p>Next amount: <b id="nextAmount">1</b></p>
       </div>
-      
-    </section>
-
-    <section class="features">
-      <label>
-        <input id="autoStake" type="checkbox">
-        <span>Auto stake</span>
-      </label>
-      <label>
-        <input id="autoCycle" type="checkbox">
-        <span>Auto cycle</span>
-      </label>
-      <label>
-        <input id="compoundEarnings" type="checkbox">
-        Compound Earnings
-      </label>
     </section>
     
     <div class="options">
@@ -77,6 +88,6 @@
     </div>
   </section>
 
-  <button id='openInTab'>Open in new tab</button>
+  <!-- <button id='openInTab'>Open in new tab</button> -->
 </body>
 </html>

@@ -1,41 +1,54 @@
 'use strict'
-const featuresIDs = ['autoStake', 'autoCycle', 'compoundEarnings']
-const inputsIds = ['amountToRisk', 'totalOperations', 'ITMs', 'profitPercent']
-let tabId
+const featuresIDs = Object.keys(features)
+const inputsIds = Object.keys(settings)
 
-chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-  console.log(tabs, tabs[0], tabs[0].url)
-})
+console.log({inputsIds, featuresIDs})
+let tabHost
+let masanielloKey = ``
+let operationsKey = ``
+let featuresKey = ''
+let hasTabAccess = false;
+let tab
 
-const port = chrome.runtime.connect({ name: "extensionTab" });
+chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+  tab = tabs[0]
+  console.log(tabs, tab, tab.url)
+  const tabUrl = new URL(tab.url)
+  tabHost = tabUrl.host
+  masanielloKey = `masanielloSettings-${tabHost}`
+  operationsKey = `operations-${tabHost}`
+  featuresKey = `features-${tabHost}`
 
-port.onMessage.addListener((msg) => {
-  console.log("Mensaje recibido desde content.js:", msg);
-  if (msg.action === 'connection') {
-    isPoketOption = msg.data.isPoketOption
-    updateData()
+  const result = await chrome.permissions.contains({ origins: [tab.url] })
+  if (result) {
+    console.log("La extensión tiene permiso para esta página.")
+    hasTabAccess = true
   }
-})
-port.postMessage({ action: 'connection' });
 
-document.addEventListener('DOMContentLoaded', () => {
-  chrome.storage.local.get(['autoStake', 'autoCycle', 'compoundEarnings'], (result) => {
-    console.log(result)
-    
-    for (const featureID of featuresIDs) {
-      if (result[featureID]) {
-        const state = result[featureID]
-        document.getElementById(featureID).checked = state
-        features[featureID] = state
+  if (hasTabAccess) {
+    console.log({hasTabAccess})
+    chrome.storage.local.get([featuresKey], (result) => {
+      console.log(result)
+      if (!(featuresKey in result)) return
+      
+      for (const featureID of featuresIDs) {
+        const featureValue = result[featuresKey][featureID]
+        if (featureValue) {
+          document.getElementById(featureID).checked = featureValue
+          features[featureID] = featureValue
+        }
       }
-    }
-  })
+    })
+  } else {
+    document.querySelector('section.features').style.display = 'none'
+    console.log('display none')
+  }
 
-  chrome.storage.local.get(['masanielloSettings', 'operations'], (result) => {
+  chrome.storage.local.get([masanielloKey, operationsKey], (result) => {
     console.log(result)
     
-    if (result.masanielloSettings) settings = result.masanielloSettings
-    if (result.operations) operations = result.operations
+    if (result[masanielloKey]) settings = result[masanielloKey]
+    if (result[operationsKey]) operations = result[operationsKey]
 
     calculateMatris()
     
@@ -46,6 +59,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     updateData()
   })
+})
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  
 })
 
 document.addEventListener('click', ev => {
@@ -63,7 +81,7 @@ document.addEventListener('input', ev => {
     const {value, id} = ev.target
 
     const isPercent = id === 'profitPercent'
-    const decimalPaatern = inputsIds.slice(1, 3).some(inputId => id === inputId) ? "\\d*?" : "$|^\\d+(?:[.,]\\d*)?"
+    const decimalPaatern = inputsIds.slice(2).some(inputId => id === inputId) ? "\\d*?" : "$|^\\d+(?:[.,]\\d*)?"
     const paatern = `^${isPercent ? '%$|^' : ''}${decimalPaatern}${isPercent ? '%?' : ''}$`
     const regex = new RegExp(paatern)
 
@@ -91,45 +109,36 @@ document.addEventListener('change', ev => {
     ev.target.value = value
     settings[id] = value
 
-    chrome.storage.local.set({ ['masanielloSettings']: settings })
+    chrome.storage.local.set({ [masanielloKey]: settings })
     calculateMatris()
     updateData()
   }
 
   if (featuresIDs.some(feature => feature === id)) {
-    chrome.storage.local.get([id], (result) => {
-      const newState = !result[id]
-      
-      // Guardar el nuevo estado
-      chrome.storage.local.set({ [id]: newState }, () => {
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-          if (tabs.length > 0) {
-            chrome.scripting.executeScript({
-              target: { tabId: tabs[0].id },
-              function(isActive, id, settings, operations) {
-                if (isActive) {
-                  enableFeature(id, settings, operations)
-                } else {
-                  disableFeature(id)
-                }
-              },
-              args: [newState, id, settings, operations]
-            })
+    features[id] = !features[id]
+    
+    if (!hasTabAccess) return
+    chrome.storage.local.set({ [featuresKey]: features }, () => {
+      chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        function(isActive, id, settings, operations) {
+          if (isActive) {
+            enableFeature(id, settings, operations)
+          } else {
+            disableFeature(id)
           }
-        })
+        },
+        args: [features[id], id, settings, operations]
       })
     })
   } else if (features.autoStake) {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs.length > 0) {
-        chrome.scripting.executeScript({
-          target: { tabId: tabs[0].id },
-          function(settings, operations) {
-            enableFeature('autoStake', settings, operations)
-          },
-          args: [settings, operations]
-        })
-      }
+    if (!hasTabAccess) return
+    chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      function(settings, operations) {
+        enableFeature('autoStake', settings, operations)
+      },
+      args: [settings, operations]
     })
   }
 })
@@ -142,8 +151,8 @@ function updateData () {
   console.log({isPoketOption})
   
   document.querySelector('.target #profitPercent b').textContent = (profitPercent * 100).toFixed(2) + '%'
-  document.querySelector('.target #finalBalance b').textContent = isPoketOption ? (amountToRisk + netProfit).toFixed(2) : autoFixNumber(amountToRisk + netProfit)
-  document.querySelector('.target #netProfit b').textContent = isPoketOption ? netProfit.toFixed(2) : autoFixNumber(netProfit)
+  document.querySelector('.target #finalBalance b').textContent = +(amountToRisk + netProfit).toFixed(settings.decimalsLimit)
+  document.querySelector('.target #netProfit b').textContent = +netProfit.toFixed(settings.decimalsLimit)
 
   const nextAmount = getMasanielloAmount(isPoketOption ? 2 : undefined)
 
@@ -174,20 +183,16 @@ function updateData () {
 
     button.addEventListener('click', () => {
       operations = []
-      chrome.storage.local.set({ operations })
+      chrome.storage.local.set({ [operationsKey]: operations })
       button.remove()
       updateData()
-      if (autoStake) {
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-          if (tabs.length > 0) {
-            chrome.scripting.executeScript({
-              target: { tabId: tabs[0].id },
-              function(settings, operations) {
-                enableFeature('autoStake', settings, operations)
-              },
-              args: [settings, operations]
-            })
-          }
+      if (autoStake && !hasTabAccess) {
+        chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          function(settings, operations) {
+            enableFeature('autoStake', settings, operations)
+          },
+          args: [settings, operations]
         })
       }
 

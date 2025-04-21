@@ -1,5 +1,5 @@
 .masaniello-notification {
-  position: absolute;
+  position: fixed;
   background-color: gray;
   z-index: 999;
   border-radius: 6px;
@@ -8,6 +8,7 @@
   font-size: large;
   justify-content: center;
   font-weight: bolder;
+  overflow: hidden;
 
   animation-name: hideMasanielloNotification;
   animation-duration: .3s;
@@ -41,6 +42,7 @@
   & button {
     border: none;
     padding: 12px;
+    background-color: transparent;
   }
 }
 

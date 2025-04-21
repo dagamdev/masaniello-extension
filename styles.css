@@ -35,12 +35,14 @@ form {
 fieldset {
   display: flex;
   flex-direction: column;
-  row-gap: 12px;
+  row-gap: 6px;
+  border-radius: 4px;
 
   & label {
     display: flex;
-    column-gap: 16px;
+    row-gap: 4px;
     justify-content: space-between;
+    flex-direction: column;
   }
 }
 
@@ -48,7 +50,7 @@ fieldset {
   width: 130px;
 }
 
-#settings span {
+label span {
   white-space: nowrap;
 }
 
@@ -64,6 +66,10 @@ section {
 .sub-group {
   display: flex;
   gap: 8px;
+
+  &.vertical {
+    flex-direction: column;
+  }
 }
 
 .group section {
@@ -102,4 +108,12 @@ section {
   display: flex;
   column-gap: 6px;
   cursor: pointer;
+}
+
+h1 {
+  font-size: large;
+}
+
+h2 {
+  font-size: medium;
 }

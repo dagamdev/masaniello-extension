@@ -8,14 +8,15 @@ const features = {
  */
 let operations = []
 /**
- * @typedef {Record<'ITMs' | 'amountToRisk' | 'profitPercent' | 'totalOperations', number | string>} MsanielloSettings
+ * @typedef {Record<'ITMs' | 'amountToRisk' | 'profitPercent' | 'totalOperations' | 'decimalsLimit', number | string>} MsanielloSettings
  * @type {MsanielloSettings}
  */
 let settings = {
-  ITMs: 4,
   amountToRisk: 100,
   profitPercent: "92%",
-  totalOperations: 10
+  totalOperations: 10,
+  ITMs: 4,
+  decimalsLimit: 2
 }
 /**
  * @type {0 | 1[][]}

@@ -1,11 +1,6 @@
 'use strict'
 
-console.log(window.location)
-console.log(window.location.host)
-
 let lastResultTime = ''
-
-console.log({isPoketOption})
 
 createNotification('Hola que tal')
 
