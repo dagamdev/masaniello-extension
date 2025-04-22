@@ -18,7 +18,7 @@ window.addEventListener("load", () => {
 
     if (features.autoStake) {
       calculateMatris()
-      setInputValue(getMasanielloAmount(isPoketOption ? 2 : undefined))
+      setInputValue(getMasanielloAmount())
     }
   })
 
@@ -79,7 +79,7 @@ window.addEventListener("load", () => {
             operations.push(0)
           }
 
-          let nexAmount = getMasanielloAmount(isPoketOption ? 2 : undefined)
+          let nexAmount = getMasanielloAmount()
 
           if (payout && !nexAmount) {
             console.log('Has ganado')
@@ -91,7 +91,7 @@ window.addEventListener("load", () => {
               settings.amountToRisk = autoFixNumber(amountToRisk + amountToRisk * (matris[0][0] - 1))
               operations = []
               console.log(settings)
-              nexAmount = getMasanielloAmount(isPoketOption ? 2 : undefined)
+              nexAmount = getMasanielloAmount()
             }
           } else if (!nexAmount) {
             createNotification({message: 'Has perdido con tu gestion Masaniello', type: 'error'})

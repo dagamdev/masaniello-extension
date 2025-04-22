@@ -47,11 +47,7 @@ function calculateMatris () {
   }
 }
 
-/**
- * 
- * @param {number | undefined} fixed
- */
-function getMasanielloAmount (fixed) {
+function getMasanielloAmount () {
   const total = +settings.totalOperations
   const wins = +settings.ITMs
   const amountToRisk = +settings.amountToRisk
