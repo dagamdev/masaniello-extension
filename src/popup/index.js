@@ -56,7 +56,7 @@ chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
         const stats = result[statsKey]
 
         for (const stat in stats) {
-          document.querySelector(`.stats #${stat}`).textContent = stats[stat]
+          document.querySelector(`.stats #${stat}`).textContent = +stats[stat].toFixed(settings.decimalsLimit)
         }
         document.querySelector(`.stats #profitPercent`).textContent = `${(stats.profit / stats.initialAmount * 100).toFixed(2)}%`
       } else {
@@ -82,13 +82,25 @@ document.addEventListener('click', ev => {
     if (target.id === 'resetStats' && hasTabPermission) { 
       chrome.storage.local.set({ [statsKey]: {
         profit: 0,
-        initialAmount: settings.amountToRisk,
+        initialAmount: +settings.amountToRisk,
         sessionCounter: 0
       } }, () => {
         document.querySelector(`.stats #profit`).textContent = '0'
         document.querySelector(`.stats #initialAmount`).textContent = settings.amountToRisk
         document.querySelector(`.stats #sessionCounter`).textContent = '0'
         document.querySelector(`.stats #profitPercent`).textContent = '0%'
+
+        chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          function(stats) {
+            updateMasanielloData({stats})
+          },
+          args: [{
+            profit: 0,
+            initialAmount: +settings.amountToRisk,
+            sessionCounter: 0
+          }]
+        })
       })
     }
   }
@@ -143,7 +155,7 @@ document.addEventListener('change', ev => {
         args: [features]
       })
     })
-  } else if (features.autoStake) {
+  } else {
     if (!hasTabPermission) return
     chrome.scripting.executeScript({
       target: { tabId: tab.id },
@@ -164,15 +176,13 @@ function updateData () {
   document.querySelector('.target #finalBalance b').textContent = +(amountToRisk + netProfit).toFixed(settings.decimalsLimit)
   document.querySelector('.target #netProfit b').textContent = +netProfit.toFixed(settings.decimalsLimit)
 
-  const nextAmount = getMasanielloAmount(isPoketOption ? 2 : undefined)
-
   const wins = operations.filter(o => o).length
   const Losings = operations.filter(o => !o).length
   const totalLosings = +settings.totalOperations - +settings.ITMs
   document.querySelector('.data #winOperations').textContent = `${wins}/${settings.ITMs}`
   document.querySelector('.data #losingOperations').textContent = `${Losings}/${totalLosings}`
   document.querySelector('.data #totalOperations').textContent = `${operations.length}/${settings.totalOperations}`
-  document.querySelector('.data #nextAmount').textContent = nextAmount
+  document.querySelector('.data #nextAmount').textContent = getMasanielloAmount()
   const message = document.getElementById('message')
 
 
@@ -196,13 +206,13 @@ function updateData () {
       if (hasTabPermission) chrome.storage.local.set({ [operationsKey]: operations })
       button.remove()
       updateData()
-      if (autoStake && !hasTabPermission) {
+      if (hasTabPermission) {
         chrome.scripting.executeScript({
           target: { tabId: tab.id },
-          function(settings, operations) {
+          function(operations) {
             updateMasanielloData({operations})
           },
-          args: [settings, operations]
+          args: [operations]
         })
       }
 

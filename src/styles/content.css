@@ -42,6 +42,7 @@
   & button {
     border: none;
     padding: 12px;
+    display: flex;
     background-color: transparent;
   }
 }

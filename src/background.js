@@ -9,7 +9,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     chrome.storage.local.set(updatedData, () => {
-      console.log("Dato guardado:", data);
+      console.log("Datos guardados:", data);
     })
   }
 
@@ -20,41 +20,4 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     return true
   }
-
-  if (message.action === 'getFreatures') {
-    chrome.storage.local.get(['autoStake', 'autoCycle'], (result) => {
-      sendResponse(result)
-    })
-
-    return true
-  }
 })
-
-let ports = {
-  content: null,
-  extensionTab: null,
-};
-
-chrome.runtime.onConnect.addListener((port) => {
-  if (port.name === "content") {
-    ports.content = port;
-    console.log("Conectado: content.js");
-
-    port.onMessage.addListener((msg) => {
-      ports.extensionTab?.postMessage(msg);
-    });
-  } else if (port.name === "extensionTab") {
-    ports.extensionTab = port;
-    console.log("Conectado: pestaña de extensión");
-
-    port.onMessage.addListener((msg) => {
-      ports.content?.postMessage(msg);
-    });
-  }
-
-  port.onDisconnect.addListener(() => {
-    if (port.name === "content") ports.content = null;
-    if (port.name === "extensionTab") ports.extensionTab = null;
-  });
-});
-

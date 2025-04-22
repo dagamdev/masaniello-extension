@@ -1,10 +1,9 @@
 'use strict'
 
 let lastResultTime = ''
-let initialInputValue = '1'
 const {host} = location
 /**
- * @type {Record<'profit' | 'initialAmount' | 'sessionCounter',  number | string>}
+ * @type {Record<'profit' | 'initialAmount' | 'sessionCounter', number>}
  */
 let stats = {
   profit: 0,
@@ -18,11 +17,6 @@ createNotification('Extencion de gestion Masaniello cargada')
 window.addEventListener("load", () => {
   console.log('Masaniello extension')
 
-  chrome.runtime.sendMessage({ action: "getFreatures" }, (response) => {
-    if ('autoStake' in response) features.autoStake = response.autoStake
-    if ('autoCycle' in response) features.autoCycle = response.autoCycle
-  })
-
   chrome.runtime.sendMessage({ action: "getData", host }, (response) => {
     const operationsKey = `operations-${host}`
     const settingsKey = `masanielloSettings-${host}`
@@ -33,11 +27,11 @@ window.addEventListener("load", () => {
     if (response[settingsKey]) settings = response[settingsKey]
     if (response[featuresKey]) features = response[featuresKey]
     if (response[statsKey]) stats = response[statsKey]
+    else stats.initialAmount = settings.amountToRisk
 
     if (features.autoStake) {
       calculateMatris()
-      amount = getMasanielloAmount()
-      setInputValue(amount)
+      getAndSetAmount()
     }
   })
 
@@ -83,7 +77,8 @@ window.addEventListener("load", () => {
  * @param {{
  * settings?: MsanielloSettings,
  * operations?: 0 | 1[],
- * features?: typeof features
+ * features?: typeof features,
+ * stats?: typeof stats
  * }} data
  */
 function updateMasanielloData (data) {
@@ -94,15 +89,19 @@ function updateMasanielloData (data) {
   if (data.features) {
     if (data.features.autoStake) {
       if (!data.settings) calculateMatris()
-      amount = getMasanielloAmount()
-      setInputValue(amount)
+      getAndSetAmount()
     }
     features = data.features
   } else if (features.autoStake) {
-    amount = getMasanielloAmount()
-    setInputValue(amount)
+    getAndSetAmount()
   }
-  if (data.operations) operations = data.operations
+  if (data.operations) {
+    operations = data.operations
+    if (features.autoStake) {
+      getAndSetAmount()
+    }
+  }
+  if (data.stats) stats = data.stats
 }
 
 /**
@@ -117,8 +116,8 @@ function handleResult (isWinner, profit) {
   let nexAmount = getMasanielloAmount()
 
   if (isWinner && !nexAmount) {
-    createNotification({message: 'Has ganado con tu gestion Masaniello', type: 'success'})
     stats.sessionCounter++
+    createNotification({message: 'Has ganado la sesión Masaniello', type: 'success'})
 
     if (features.autoCycle) {
       const amountToRisk = +settings.amountToRisk
@@ -129,11 +128,20 @@ function handleResult (isWinner, profit) {
       nexAmount = getMasanielloAmount()
     }
   } else if (!nexAmount) {
-    createNotification({message: 'Has perdido con tu gestion Masaniello', type: 'error'})
+    stats.sessionCounter++
+    createNotification({message: 'Has perdido la sesión Masaniello', type: 'error'})
   }
 
   stats.profit += isWinner ? profit : -amount
 
   chrome.runtime.sendMessage({ action: "updateData", data: {operations, masanielloSettings: settings, stats}, host })
-  if (nexAmount) setInputValue(nexAmount || 1)
+  if (nexAmount) {
+    amount = nexAmount
+    setInputValue(amount)
+  }
+}
+
+function getAndSetAmount () {
+  amount = getMasanielloAmount()
+  setInputValue(amount)
 }
