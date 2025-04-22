@@ -5,8 +5,6 @@ function getProfitPercent () {
 }
 
 function getInput () {
-  const {host} = window.location
-
   if (host === 'pocketoption.com') return document.querySelector('.block.block--bet-amount input')
   if (pickHosts.some(ph => ph === host)) return document.getElementById('bet_amount')
   return null
@@ -14,6 +12,14 @@ function getInput () {
 
 function setInputValue (value, input) {
   input ??= getInput()
+  
+  if (!input) {
+    setTimeout(() => {
+      setInputValue(value, input)
+    }, 1000)
+    return
+  }
+  
   const descriptor = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")
   descriptor.set.call(input, value)
   input.dispatchEvent(new Event("input", { bubbles: true }))

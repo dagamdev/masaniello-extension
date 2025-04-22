@@ -121,14 +121,17 @@ document.addEventListener('change', ev => {
     chrome.storage.local.set({ [featuresKey]: features }, () => {
       chrome.scripting.executeScript({
         target: { tabId: tab.id },
-        function(isActive, id, settings, operations) {
-          if (isActive) {
-            enableFeature(id, settings, operations)
-          } else {
-            disableFeature(id)
-          }
+        function(isActive, id, settings, operations, features) {
+          // if (isActive) {
+          //   enableFeature(id, settings, operations)
+          // } else {
+          //   disableFeature(id)
+          // }
+          updateMasanielloData({
+            features
+          })
         },
-        args: [features[id], id, settings, operations]
+        args: [features[id], id, settings, operations, features]
       })
     })
   } else if (features.autoStake) {
@@ -136,7 +139,8 @@ document.addEventListener('change', ev => {
     chrome.scripting.executeScript({
       target: { tabId: tab.id },
       function(settings, operations) {
-        enableFeature('autoStake', settings, operations)
+        // enableFeature('autoStake', settings, operations)
+        updateMasanielloData({settings})
       },
       args: [settings, operations]
     })
@@ -191,6 +195,7 @@ function updateData () {
           target: { tabId: tab.id },
           function(settings, operations) {
             enableFeature('autoStake', settings, operations)
+            updateMasanielloData({operations})
           },
           args: [settings, operations]
         })

@@ -1,8 +1,3 @@
-const features = {
-  autoStake: false,
-  autoCycle: false,
-  compoundEarnings: false
-}
 /**
  * @type {0 | 1[]}
  */
@@ -22,4 +17,9 @@ let settings = {
  * @type {0 | 1[][]}
  */
 let matris = []
+let features = {
+  autoStake: false,
+  autoCycle: false,
+  compoundEarnings: false
+}
 let isPoketOption = window.location.host === 'pocketoption.com'

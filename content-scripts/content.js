@@ -1,8 +1,11 @@
 'use strict'
 
 let lastResultTime = ''
+let initialInputValue = '1'
+const {host} = location
 
 createNotification('Hola que tal')
+console.log({host})
 
 window.addEventListener("load", () => {
   console.log('Load dom')
@@ -12,9 +15,14 @@ window.addEventListener("load", () => {
     if ('autoCycle' in response) features.autoCycle = response.autoCycle
   })
 
-  chrome.runtime.sendMessage({ action: "getMasanielloData" }, (response) => {
-    if (response.operations) operations = response.operations
-    if (response.masanielloSettings) settings = response.masanielloSettings
+  chrome.runtime.sendMessage({ action: "getData", host }, (response) => {
+    const operationsKey = `operations-${host}`
+    const settingsKey = `masanielloSettings-${host}`
+    const featuresKey = `features-${host}`
+
+    if (response[operationsKey]) operations = response[operationsKey]
+    if (response[settingsKey]) settings = response[settingsKey]
+    if (response[featuresKey]) features = response[featuresKey]
 
     if (features.autoStake) {
       calculateMatris()
@@ -47,7 +55,9 @@ window.addEventListener("load", () => {
 
             if (features.autoCycle) {
               const amountToRisk = +settings.amountToRisk
-              settings.amountToRisk = autoFixNumber(amountToRisk + amountToRisk * (matris[0][0] - 1))
+              if (features.compoundEarnings) {
+                settings.amountToRisk = +(amountToRisk + amountToRisk * (matris[0][0] - 1)).toFixed(settings.decimalsLimit)
+              }
               operations = []
               nexAmount = getMasanielloAmount()
             }
@@ -55,8 +65,8 @@ window.addEventListener("load", () => {
             createNotification({message: 'Has perdido con tu gestion Masaniello', type: 'error'})
           }
 
-          chrome.runtime.sendMessage({ action: "updateData", operations, masanielloSettings: settings })
-          setInputValue(nexAmount || 1)
+          chrome.runtime.sendMessage({ action: "updateData", data: {operations, masanielloSettings: settings}, host })
+          if (nexAmount) setInputValue(nexAmount || 1)
         }
 
         return
@@ -86,19 +96,19 @@ window.addEventListener("load", () => {
             createNotification({message: 'Has ganado con tu gestion Masaniello', type: 'success'})
 
             if (features.autoCycle) {
-              console.log("auto cycle")
               const amountToRisk = +settings.amountToRisk
-              settings.amountToRisk = autoFixNumber(amountToRisk + amountToRisk * (matris[0][0] - 1))
+              if (features.compoundEarnings) {
+                settings.amountToRisk = +(amountToRisk + amountToRisk * (matris[0][0] - 1)).toFixed(settings.decimalsLimit)
+              }
               operations = []
-              console.log(settings)
               nexAmount = getMasanielloAmount()
             }
           } else if (!nexAmount) {
             createNotification({message: 'Has perdido con tu gestion Masaniello', type: 'error'})
           }
 
-          chrome.runtime.sendMessage({ action: "updateData", operations, masanielloSettings: settings })
-          setInputValue(nexAmount || 1)
+          chrome.runtime.sendMessage({ action: "updateData", data: {operations, masanielloSettings: settings}, host })
+          if (nexAmount) setInputValue(nexAmount || 1)
         }
       })
     })
@@ -122,7 +132,7 @@ function enableFeature (featureType, newSettings, newOperations) {
     settings = newSettings
     operations = newOperations
     calculateMatris()
-    setInputValue(getMasanielloAmount(isPoketOption ? 2 : undefined))
+    setInputValue(getMasanielloAmount())
   } else {
     features.autoCycle = true
   }
@@ -141,15 +151,25 @@ function disableFeature (featureType) {
   } else features.autoCycle = false  
 }
 
-
-const port = chrome.runtime.connect({ name: "content" });
-
-port.onMessage.addListener((msg) => {
-  if (msg.action === 'connection') {
-    port.postMessage({ action: 'connection', data: {isPoketOption} });
+/**
+ * 
+ * @param {{
+ * settings?: MsanielloSettings,
+ * operations?: 0 | 1[],
+ * features?: typeof features
+ * }} data
+ */
+function updateMasanielloData (data) {
+  if (data.settings) {
+    settings = data.settings
+    calculateMatris()
   }
-  console.log("Mensaje recibido desde la pestaña de la extensión:", msg);
-});
-
-// Enviar mensaje
-port.postMessage({ action: "desde_content", data: "Hola desde content.js" });
+  if (data.features) {
+    if (data.features.autoStake) {
+      if (!data.settings) calculateMatris()
+      setInputValue(getMasanielloAmount())
+    }
+    features = data.features
+  } else if (features.autoStake) setInputValue(getMasanielloAmount())
+  if (data.operations) operations = data.operations
+}
