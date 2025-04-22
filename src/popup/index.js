@@ -2,33 +2,27 @@
 const featuresIDs = Object.keys(features)
 const inputsIds = Object.keys(settings)
 
-console.log({inputsIds, featuresIDs})
-let tabHost
-let masanielloKey = ``
+let tab, tabHost
+let hasTabPermission = false;
+let settingsKey = ``
 let operationsKey = ``
 let featuresKey = ''
-let hasTabAccess = false;
-let tab
+let statsKey = ''
 
 chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
   tab = tabs[0]
-  console.log(tabs, tab, tab.url)
   const tabUrl = new URL(tab.url)
+  
   tabHost = tabUrl.host
-  masanielloKey = `masanielloSettings-${tabHost}`
+  settingsKey = `masanielloSettings-${tabHost}`
   operationsKey = `operations-${tabHost}`
   featuresKey = `features-${tabHost}`
+  statsKey = `stats-${tabHost}`
 
-  const result = await chrome.permissions.contains({ origins: [tab.url] })
-  if (result) {
-    console.log("La extensión tiene permiso para esta página.")
-    hasTabAccess = true
-  }
+  hasTabPermission = await chrome.permissions.contains({ origins: [tab.url] })
 
-  if (hasTabAccess) {
-    console.log({hasTabAccess})
+  if (hasTabPermission) {
     chrome.storage.local.get([featuresKey], (result) => {
-      console.log(result)
       if (!(featuresKey in result)) return
       
       for (const featureID of featuresIDs) {
@@ -41,13 +35,11 @@ chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
     })
   } else {
     document.querySelector('section.features').style.display = 'none'
-    console.log('display none')
+    document.querySelector('section.stats').style.display = 'none'
   }
 
-  chrome.storage.local.get([masanielloKey, operationsKey], (result) => {
-    console.log(result)
-    
-    if (result[masanielloKey]) settings = result[masanielloKey]
+  chrome.storage.local.get([settingsKey, operationsKey, statsKey], (result) => {    
+    if (result[settingsKey]) settings = result[settingsKey]
     if (result[operationsKey]) operations = result[operationsKey]
 
     calculateMatris()
@@ -58,12 +50,25 @@ chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
     })
 
     updateData()
+
+    if (hasTabPermission) {
+      if (statsKey in result) {
+        const stats = result[statsKey]
+
+        for (const stat in stats) {
+          document.querySelector(`.stats #${stat}`).textContent = stats[stat]
+        }
+        document.querySelector(`.stats #profitPercent`).textContent = `${(stats.profit / stats.initialAmount * 100).toFixed(2)}%`
+      } else {
+        document.querySelector(`.stats #initialAmount`).textContent = settings.amountToRisk
+      }
+    }
   })
 })
 
 
 document.addEventListener('DOMContentLoaded', () => {
-  
+  console.log('DOMContentLoaded')
 })
 
 document.addEventListener('click', ev => {
@@ -72,6 +77,19 @@ document.addEventListener('click', ev => {
   if (target instanceof HTMLButtonElement) {
     if (target.id === 'openInTab') {
       chrome.tabs.create({ url: chrome.runtime.getURL("popup.html") })
+    }
+
+    if (target.id === 'resetStats' && hasTabPermission) { 
+      chrome.storage.local.set({ [statsKey]: {
+        profit: 0,
+        initialAmount: settings.amountToRisk,
+        sessionCounter: 0
+      } }, () => {
+        document.querySelector(`.stats #profit`).textContent = '0'
+        document.querySelector(`.stats #initialAmount`).textContent = settings.amountToRisk
+        document.querySelector(`.stats #sessionCounter`).textContent = '0'
+        document.querySelector(`.stats #profitPercent`).textContent = '0%'
+      })
     }
   }
 })
@@ -98,18 +116,16 @@ document.addEventListener('change', ev => {
   const {id} = ev.target
 
   if (inputsIds.some(id => id === id)) {
-    console.log(ev.target.value)
     let value = ''
     if (id === 'profitPercent') {
       value = parseFloat(ev.target.value)
       value += '%'
     } else value = +ev.target.value.replace(',', '.')
-    console.log({value})
 
     ev.target.value = value
     settings[id] = value
 
-    chrome.storage.local.set({ [masanielloKey]: settings })
+    if (hasTabPermission) chrome.storage.local.set({ [settingsKey]: settings })
     calculateMatris()
     updateData()
   }
@@ -117,32 +133,24 @@ document.addEventListener('change', ev => {
   if (featuresIDs.some(feature => feature === id)) {
     features[id] = !features[id]
     
-    if (!hasTabAccess) return
+    if (!hasTabPermission) return
     chrome.storage.local.set({ [featuresKey]: features }, () => {
       chrome.scripting.executeScript({
         target: { tabId: tab.id },
-        function(isActive, id, settings, operations, features) {
-          // if (isActive) {
-          //   enableFeature(id, settings, operations)
-          // } else {
-          //   disableFeature(id)
-          // }
-          updateMasanielloData({
-            features
-          })
+        function(features) {
+          updateMasanielloData({features})
         },
-        args: [features[id], id, settings, operations, features]
+        args: [features]
       })
     })
   } else if (features.autoStake) {
-    if (!hasTabAccess) return
+    if (!hasTabPermission) return
     chrome.scripting.executeScript({
       target: { tabId: tab.id },
-      function(settings, operations) {
-        // enableFeature('autoStake', settings, operations)
+      function(settings) {
         updateMasanielloData({settings})
       },
-      args: [settings, operations]
+      args: [settings]
     })
   }
 })
@@ -151,8 +159,6 @@ function updateData () {
   const profitPercent = matris[0][0] - 1
   const amountToRisk = +settings.amountToRisk
   const netProfit = amountToRisk * profitPercent
-  // console.log({profitPercent, amountToRisk, netProfit})
-  console.log({isPoketOption})
   
   document.querySelector('.target #profitPercent b').textContent = (profitPercent * 100).toFixed(2) + '%'
   document.querySelector('.target #finalBalance b').textContent = +(amountToRisk + netProfit).toFixed(settings.decimalsLimit)
@@ -187,14 +193,13 @@ function updateData () {
 
     button.addEventListener('click', () => {
       operations = []
-      chrome.storage.local.set({ [operationsKey]: operations })
+      if (hasTabPermission) chrome.storage.local.set({ [operationsKey]: operations })
       button.remove()
       updateData()
-      if (autoStake && !hasTabAccess) {
+      if (autoStake && !hasTabPermission) {
         chrome.scripting.executeScript({
           target: { tabId: tab.id },
           function(settings, operations) {
-            enableFeature('autoStake', settings, operations)
             updateMasanielloData({operations})
           },
           args: [settings, operations]

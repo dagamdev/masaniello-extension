@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestion Masaniello</title>
-  <script src="shared/variables.js" defer></script>
-  <script src="popup/DOM.js" defer></script>
-  <script src="shared/masaniello.js" defer></script>
-  <script src="popup/index.js" defer></script>
-  <link rel="stylesheet" href="styles.css">
+  <script src="../shared/variables.js" defer></script>
+  <script src="./DOM.js" defer></script>
+  <script src="../shared/masaniello.js" defer></script>
+  <script src="./index.js" defer></script>
+  <link rel="stylesheet" href="../styles/popup.css">
 </head>
 <body>
-  <h1>Auto Masaniello v1.3.2</h1>
+  <h1>Auto Masaniello v2.2.2</h1>
   <section class="group">
     <div class="sub-group">
       <form id="settings">
@@ -72,27 +72,34 @@
       </div>
     </div>
 
-    <section class="data">
-      <h2>Session data</h2>
-      
-      <div>
-        <p>Win operations: <b id="winOperations">0/4</b></p>
-        <p>Losing operations: <b id="losingOperations">0/6</b></p>
-        <p>Operations: <b id="totalOperations">0/10</b></p>
-        <p>Next amount: <b id="nextAmount">1</b></p>
-      </div>
-    </section>
-    
+    <div class="sub-group">
+      <section class="data">
+        <h2>Session data</h2>
+        
+        <div>
+          <p>Win operations: <b id="winOperations">0/4</b></p>
+          <p>Losing operations: <b id="losingOperations">0/6</b></p>
+          <p>Operations: <b id="totalOperations">0/10</b></p>
+          <p>Next amount: <b id="nextAmount">1</b></p>
+        </div>
+      </section>
+  
+      <section class="stats">
+        <h2>Stats</h2>
+  
+        <div>
+          <p>Profit: <b id="profit">0</b></p>
+          <p>Initial amount: <b id="initialAmount">0</b></p>
+          <p>Session counter: <b id="sessionCounter">0</b></p>
+          <p>Profit percent: <b id="profitPercent">0%</b></p>
+        </div>
+        <button id="resetStats">Reset</button>
+      </section>
+    </div>
+
     <div class="options">
       <p id="message"></p>
     </div>
-
-    <section>
-      <div>
-        <p>Session counter: <b id="sessionCounter">0</b></p>
-      </div>
-      <button class="clearSessionCounter">Clear</button>
-    </section>
   </section>
 
   <!-- <button id='openInTab'>Open in new tab</button> -->

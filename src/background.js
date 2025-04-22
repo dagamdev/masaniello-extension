@@ -9,12 +9,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     chrome.storage.local.set(updatedData, () => {
-      console.log("Dato guardado:", props);
+      console.log("Dato guardado:", data);
     })
   }
 
   if (message.action === 'getData') {
-    chrome.storage.local.get([`masanielloSettings-${message.host}`, `operations-${message.host}`, `features-${message.host}`], (result) => {
+    chrome.storage.local.get([`masanielloSettings-${message.host}`, `operations-${message.host}`, `features-${message.host}`, `stats-${message.host}`], (result) => {
       sendResponse(result)
     })
 

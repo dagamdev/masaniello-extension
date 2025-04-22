@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Auto masaniello",
-  "version": "1.3.2",
+  "version": "2.2.2",
   "description": "Calcula y actualiza el monto segun la gestion de capital Masaniello",
   "permissions": ["scripting", "storage", "tabs"],
   "host_permissions": [
@@ -17,7 +17,7 @@
     "128": "icon.png"
   },
   "action": {
-    "default_popup": "popup.html"
+    "default_popup": "src/popup/index.html"
   },
   "content_scripts": [
     {
@@ -30,18 +30,18 @@
         "https://solpick.io/ultimate.php"
       ], 
       "js": [
-        "content-scripts/variables.js",
-        "shared/variables.js",
-        "content-scripts/lib/DOM.js",
-        "shared/masaniello.js",
-        "content-scripts/content.js"
+        "src/scripts/variables.js",
+        "src/shared/variables.js",
+        "src/scripts/lib/DOM.js",
+        "src/shared/masaniello.js",
+        "src/scripts/content.js"
       ],
       "css": [
-        "styles/content.css"
+        "src/styles/content.css"
       ]
     }
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "src/background.js"
   }
 }

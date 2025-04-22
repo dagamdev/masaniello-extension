@@ -48,12 +48,10 @@ function calculateMatris () {
 }
 
 function getMasanielloAmount () {
-  console.log({operations, settings})
   const total = +settings.totalOperations
   const wins = +settings.ITMs
   const amountToRisk = +settings.amountToRisk
   const profit = +settings.profitPercent.slice(0, -1) / 100 + 1
-  console.log({total, wins, amountToRisk, profit})
 
   let value = 0, balance = amountToRisk
 
@@ -79,7 +77,7 @@ function getMasanielloAmount () {
       return 0
     }
     if (op + 1 === total) {
-      console.log({balance, fixed: +balance.toFixed(settings.decimalsLimit)})
+      // console.log({balance, fixed: +balance.toFixed(settings.decimalsLimit)})
       return +balance.toFixed(settings.decimalsLimit)
     }
 
@@ -87,7 +85,7 @@ function getMasanielloAmount () {
     lastAmount = value
   }
 
-  console.log({value, fixed: +value.toFixed(settings.decimalsLimit)})
+  // console.log({value, fixed: +value.toFixed(settings.decimalsLimit)})
   return +value.toFixed(settings.decimalsLimit)
 
   /**
@@ -99,7 +97,6 @@ function getMasanielloAmount () {
   function calculateAmount (winnins, losses, isLast = false) {
     if (isLast) return balance
 
-    console.log(matris)
     const valor1 = winnins + 1 >= wins ? 1 : matris[losses + winnins + 1][winnins + 1]
     const valor2 = matris[losses + winnins + 1]?.[winnins]
     if (typeof valor2 === 'undefined') return balance
