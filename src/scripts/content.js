@@ -12,9 +12,8 @@ let stats = {
 }
 let amount = 0
 
-createNotification('Extencion de gestion Masaniello cargada')
-
 window.addEventListener("load", () => {
+  createNotification('Extencion de gestion Masaniello cargada')
   console.log('Masaniello extension')
 
   chrome.runtime.sendMessage({ action: "getData", host }, (response) => {
@@ -37,8 +36,8 @@ window.addEventListener("load", () => {
 
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
-      if (pickHosts.some(ph => ph === window.location.host)) {
-        const target = mutation.target
+      console.log()
+      if (pickHosts.some(ph => ph === location.host)) {
 
         if (features.autoStake && target instanceof HTMLElement && target.parentElement.matches('.table.table-striped.bets_table')) {
           const resultTime = target.querySelector('tr').firstChild.textContent
@@ -54,17 +53,47 @@ window.addEventListener("load", () => {
       }
 
       mutation.addedNodes.forEach((node) => {
-        if(!node instanceof HTMLElement) return
+        if(!(node instanceof HTMLElement)) return
+
+        // console.log(node, node.outerHTML)
+
+        if (!features.autoStake) return
         
-        if (features.autoStake && node instanceof HTMLElement && node.matches(".deals-noty.deals-noty--close-success.deals-noty--many")) {        
+        if (node.matches(".deals-noty.deals-noty--close-success.deals-noty--many")) {        
           const childrens = node.querySelectorAll('.deals-noty__value')
 
           const payout = +childrens.item(0).textContent?.slice(1)
           const profit = +childrens.item(1).textContent?.slice(1)
 
+          if (payout && !profit) return
           handleResult(payout && profit, profit)
         }
+        
+        if (node.matches('.trades-notifications') || node.matches('.trades-notifications-item')) {
+          const result = node.querySelector('.trades-notifications-item__total')
+          const profit = +result.textContent.replace(/[+$ ]/g, '')
+
+          if (amount === profit) {
+            console.log('Draw: ', {amount, profit})
+            return
+          }
+          handleResult(profit, profit)
+        }
+
+        if (node.matches('.sc-dJltXf.izCrhq') || node.matches('.sc-hokQRP.iOSYdz')) {
+          const result = node.querySelector('.sc-jiDjCn')
+          const profit = +result.textContent.replace(',', '.').replace(/[$+]/g, '')
+          console.log({profit, amount})
+
+          if (amount === profit) {
+            console.log('Draw: ', {amount, profit})
+            return
+          }
+          handleResult(profit, profit)
+        }
       })
+
+      // console.log(mutation.target)
     })
   })
 
@@ -122,7 +151,7 @@ function handleResult (isWinner, profit) {
     if (features.autoCycle) {
       const amountToRisk = +settings.amountToRisk
       if (features.compoundEarnings) {
-        settings.amountToRisk = +(amountToRisk + amountToRisk * (matris[0][0] - 1)).toFixed(settings.decimalsLimit)
+        settings.amountToRisk = fixNumber(amountToRisk + amountToRisk * (matris[0][0] - 1))
       }
       operations = []
       nexAmount = getMasanielloAmount()

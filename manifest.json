@@ -1,12 +1,14 @@
 {
   "manifest_version": 3,
-  "name": "Auto masaniello",
-  "version": "2.2.2",
-  "description": "Calcula y actualiza el monto segun la gestion de capital Masaniello",
+  "name": "Masaniello Pro",
+  "version": "2.3.2",
+  "description": "Automatiza la gestión Masaniello en brokers, optimiza tu capital y multiplica tus sesiones con ciclos automáticos y de interés compuesto.",
   "permissions": ["scripting", "storage", "tabs"],
   "host_permissions": [
     "https://pocketoption.com/*",
-    "https://olymptrade.com/platform",
+    "https://olymptrade.com/*",
+    "https://qxbroker.com/*",
+    "https://binolla.com/*",
     "https://tronpick.io/ultimate.php",
     "https://tonpick.game/ultimate.php",
     "https://litepick.io/ultimate.php",
@@ -23,6 +25,9 @@
     {
       "matches": [
         "https://pocketoption.com/*",
+        "https://olymptrade.com/platform",
+        "https://qxbroker.com/*",
+        "https://binolla.com/*",
         "https://tronpick.io/ultimate.php",
         "https://tonpick.game/ultimate.php",
         "https://litepick.io/ultimate.php",
@@ -38,6 +43,15 @@
       ],
       "css": [
         "src/styles/content.css"
+      ]
+    },
+    {
+      "matches": [
+        "https://olymptrade.com/platform"
+      ],
+      "js": [
+        "src/scripts/lib/canvas.js",
+        "src/scripts/no-notifications.js"
       ]
     }
   ],

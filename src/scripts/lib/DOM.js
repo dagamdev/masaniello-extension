@@ -1,15 +1,18 @@
-function getProfitPercent () {
-  if (host === 'pocketoption.com') return parseInt(document.querySelector('.block.block--payout .value__val-start').textContent) || 0
-  if (pickHosts.some(ph => ph === host)) return parseInt(document.getElementById('win_chance').value) || 0
-  return 0
-}
-
 function getInput () {
-  if (host === 'pocketoption.com') return document.querySelector('.block.block--bet-amount input')
+  if (host === 'pocketoption.com') return document.querySelector('.control__value.value.value--several-items input')
+  if (host === 'olymptrade.com') return document.querySelector('.input-with-step__input input')
+  if (host === 'qxbroker.com') return document.querySelector('.section-deal__investment input')
+  if (host === 'binolla.com') return document.querySelector('.sc-cgCHwa.fsftGA input')
   if (pickHosts.some(ph => ph === host)) return document.getElementById('bet_amount')
   return null
 }
 
+/**
+ * 
+ * @param {number} value 
+ * @param {HTMLElement?} input 
+ * @returns 
+ */
 function setInputValue (value, input) {
   input ??= getInput()
   
@@ -21,12 +24,13 @@ function setInputValue (value, input) {
   }
   
   const descriptor = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")
-  descriptor.set.call(input, value)
+  descriptor.set.call(input, host === 'olymptrade.com' ? value.toString().replace('.', ',') : value)
   input.dispatchEvent(new Event("input", { bubbles: true }))
 }
 
 function getBalance () {
   if (host === 'pocketoption.com') return +document.querySelector('.balance-info-block__data span').textContent
+  if (host === 'olymptrade.com') return parseFloat(document.querySelector('[data-test="account-balance-value"]').textContent.replace(',', '.'))
   if (pickHosts.some(ph => ph === host)) return +document.querySelector('.user_balance').textContent
   return 0
 }

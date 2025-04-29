@@ -78,7 +78,7 @@ function getMasanielloAmount () {
     }
     if (op + 1 === total) {
       // console.log({balance, fixed: +balance.toFixed(settings.decimalsLimit)})
-      return +balance.toFixed(settings.decimalsLimit)
+      return fixNumber(balance)
     }
 
     value = calculateAmount(winnins, losses, op + 2 === total)
@@ -86,7 +86,7 @@ function getMasanielloAmount () {
   }
 
   // console.log({value, fixed: +value.toFixed(settings.decimalsLimit)})
-  return +value.toFixed(settings.decimalsLimit)
+  return fixNumber(value)
 
   /**
    * 
@@ -109,14 +109,6 @@ function getMasanielloAmount () {
  * 
  * @param {number} number 
  */
-function autoFixNumber (number) {
-  const strNumber = number.toFixed(20)
-  if (!strNumber.includes('.')) return number
-
-  try {
-    return number.toFixed(number.toFixed(20).split('.')[1].search(/[1-9]/) + 4)
-  } catch (error) {
-    console.log({number})
-    console.error(error)
-  }
+function fixNumber (number) {
+  return number.toFixed(settings.decimalsLimit).replace(/(\.\d*?[1-9])0+$/, '$1').replace(/\.0+$/, '')
 }

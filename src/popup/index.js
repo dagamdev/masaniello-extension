@@ -14,31 +14,36 @@ chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
   const tabUrl = new URL(tab.url)
   
   tabHost = tabUrl.host
-  settingsKey = `masanielloSettings-${tabHost}`
-  operationsKey = `operations-${tabHost}`
-  featuresKey = `features-${tabHost}`
-  statsKey = `stats-${tabHost}`
-
   hasTabPermission = await chrome.permissions.contains({ origins: [tab.url] })
 
   if (hasTabPermission) {
-    chrome.storage.local.get([featuresKey], (result) => {
-      if (!(featuresKey in result)) return
-      
-      for (const featureID of featuresIDs) {
-        const featureValue = result[featuresKey][featureID]
-        if (featureValue) {
-          document.getElementById(featureID).checked = featureValue
-          features[featureID] = featureValue
-        }
-      }
-    })
+    settingsKey = `masanielloSettings-${tabHost}`
+    operationsKey = `operations-${tabHost}`
+    featuresKey = `features-${tabHost}`
+    statsKey = `stats-${tabHost}`
   } else {
+    settingsKey = `masanielloSettings`
+    operationsKey = `operations`
+    featuresKey = `features`
+    statsKey = `stats`
+
     document.querySelector('section.features').style.display = 'none'
     document.querySelector('section.stats').style.display = 'none'
   }
 
-  chrome.storage.local.get([settingsKey, operationsKey, statsKey], (result) => {    
+  localStorageGet(featuresKey, (result) => {
+    if (!(featuresKey in result)) return
+    
+    for (const featureID of featuresIDs) {
+      const featureValue = result[featuresKey][featureID]
+      if (featureValue) {
+        document.getElementById(featureID).checked = featureValue
+        features[featureID] = featureValue
+      }
+    }
+  })
+
+  localStorageGet([settingsKey, operationsKey, statsKey], (result) => {    
     if (result[settingsKey]) settings = result[settingsKey]
     if (result[operationsKey]) operations = result[operationsKey]
 
@@ -56,7 +61,7 @@ chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
         const stats = result[statsKey]
 
         for (const stat in stats) {
-          document.querySelector(`.stats #${stat}`).textContent = +stats[stat].toFixed(settings.decimalsLimit)
+          document.querySelector(`.stats #${stat}`).textContent = fixNumber(stats[stat])
         }
         document.querySelector(`.stats #profitPercent`).textContent = `${(stats.profit / stats.initialAmount * 100).toFixed(2)}%`
       } else {
@@ -80,7 +85,7 @@ document.addEventListener('click', ev => {
     }
 
     if (target.id === 'resetStats' && hasTabPermission) { 
-      chrome.storage.local.set({ [statsKey]: {
+      localStorageSet({ [statsKey]: {
         profit: 0,
         initialAmount: +settings.amountToRisk,
         sessionCounter: 0
@@ -115,11 +120,22 @@ document.addEventListener('input', ev => {
     const paatern = `^${isPercent ? '%$|^' : ''}${decimalPaatern}${isPercent ? '%?' : ''}$`
     const regex = new RegExp(paatern)
 
-    if (regex.test(value)) {
-      settings[id] = value
-    } else {
+    if (!regex.test(value)) {
       ev.target.value = settings[id]
+      return
     }
+
+    if (id === 'totalOperations' && +value > 40) {
+      ev.target.value = settings[id]
+      return
+    }
+
+    if (id === 'ITMs' && +value > +settings.totalOperations) {
+      ev.target.value = settings[id]
+      return
+    }
+
+    settings[id] = value
   }
 })
 
@@ -132,12 +148,12 @@ document.addEventListener('change', ev => {
     if (id === 'profitPercent') {
       value = parseFloat(ev.target.value)
       value += '%'
-    } else value = +ev.target.value.replace(',', '.')
+    } else value = fixNumber(+ev.target.value.replace(',', '.'))
 
     ev.target.value = value
     settings[id] = value
 
-    if (hasTabPermission) chrome.storage.local.set({ [settingsKey]: settings })
+    localStorageSet({ [settingsKey]: settings })
     calculateMatris()
     updateData()
   }
@@ -146,7 +162,7 @@ document.addEventListener('change', ev => {
     features[id] = !features[id]
     
     if (!hasTabPermission) return
-    chrome.storage.local.set({ [featuresKey]: features }, () => {
+    localStorageSet({ [featuresKey]: features }, () => {
       chrome.scripting.executeScript({
         target: { tabId: tab.id },
         function(features) {
@@ -173,8 +189,8 @@ function updateData () {
   const netProfit = amountToRisk * profitPercent
   
   document.querySelector('.target #profitPercent b').textContent = (profitPercent * 100).toFixed(2) + '%'
-  document.querySelector('.target #finalBalance b').textContent = +(amountToRisk + netProfit).toFixed(settings.decimalsLimit)
-  document.querySelector('.target #netProfit b').textContent = +netProfit.toFixed(settings.decimalsLimit)
+  document.querySelector('.target #finalBalance b').textContent = fixNumber(amountToRisk + netProfit)
+  document.querySelector('.target #netProfit b').textContent = fixNumber(netProfit)
 
   const wins = operations.filter(o => o).length
   const Losings = operations.filter(o => !o).length
@@ -183,16 +199,6 @@ function updateData () {
   document.querySelector('.data #losingOperations').textContent = `${Losings}/${totalLosings}`
   document.querySelector('.data #totalOperations').textContent = `${operations.length}/${settings.totalOperations}`
   document.querySelector('.data #nextAmount').textContent = getMasanielloAmount()
-  const message = document.getElementById('message')
-
-
-  if (Losings > totalLosings) {
-    message.textContent = 'Has perdido'
-    message.classList.add('red')
-  } else if (wins >= +settings.ITMs) {
-    message.textContent = 'Has ganado'
-    message.classList.add('green')
-  }
 
   if (operations.length && !document.getElementById('clearOperations')) {
     const sectionGroup = document.querySelector('section.group .data')
@@ -203,7 +209,7 @@ function updateData () {
 
     button.addEventListener('click', () => {
       operations = []
-      if (hasTabPermission) chrome.storage.local.set({ [operationsKey]: operations })
+      localStorageSet({ [operationsKey]: operations })
       button.remove()
       updateData()
       if (hasTabPermission) {
