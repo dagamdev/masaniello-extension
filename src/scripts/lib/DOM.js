@@ -79,5 +79,8 @@ function createNotification (arg1) {
       notification.classList.remove('active')
     }, 20_000)
   })
+}
 
+function clickBetButton () {
+  document.querySelector('#roll_dice').click()
 }

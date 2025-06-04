@@ -69,6 +69,34 @@ chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
       }
     }
   })
+
+  
+  if (pickHosts.some(ph => ph === tabHost)) {
+    const autoBetKey = `autoBet-${tabHost}`
+    const autoBetButton = document.createElement('button')
+    autoBetButton.id = 'autoBet'
+    document.body.appendChild(autoBetButton)
+    
+    autoBetButton.addEventListener('click', () => {
+      localStorageGet(autoBetKey, result => {
+        const newState = !result[autoBetKey]
+        autoBetButton.textContent = newState ? 'Stop auto bet' : 'Start auto bet'
+
+        localStorageSet({[autoBetKey]: newState})
+        chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          function(newState) {
+            updateAutoBet(newState)
+          },
+          args: [newState]
+        })
+      })
+    })
+    
+    localStorageGet(autoBetKey, result => {
+      autoBetButton.textContent = result[autoBetKey] ? 'Stop auto bet' : 'Start auto bet'
+    })
+  }
 })
 
 
@@ -125,7 +153,7 @@ document.addEventListener('input', ev => {
       return
     }
 
-    if (id === 'totalOperations' && +value > 40) {
+    if (id === 'totalOperations' && +value > 100) {
       ev.target.value = settings[id]
       return
     }

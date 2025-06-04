@@ -10,7 +10,7 @@ let stats = {
   initialAmount: 0,
   sessionCounter: 0
 }
-let amount = 0
+let amount = 0, autoBetTimeout
 
 window.addEventListener("load", () => {
   createNotification('Extencion de gestion Masaniello cargada')
@@ -38,6 +38,7 @@ window.addEventListener("load", () => {
     mutations.forEach((mutation) => {
       console.log()
       if (pickHosts.some(ph => ph === location.host)) {
+        const { target } = mutation
 
         if (features.autoStake && target instanceof HTMLElement && target.parentElement.matches('.table.table-striped.bets_table')) {
           const resultTime = target.querySelector('tr').firstChild.textContent
@@ -47,6 +48,11 @@ window.addEventListener("load", () => {
           const profit = +target.querySelector('tr').lastChild.textContent
 
           handleResult(profit > 0, profit)
+          if (autoBet) {
+            autoBetTimeout = setTimeout(() => {
+              clickBetButton()
+            }, 5_000)
+          }
         }
 
         return
@@ -173,4 +179,14 @@ function handleResult (isWinner, profit) {
 function getAndSetAmount () {
   amount = getMasanielloAmount()
   setInputValue(amount)
+}
+
+/**
+ * 
+ * @param {boolean} newState 
+ */
+function updateAutoBet (newState) {
+  autoBet = newState
+  if (newState) clickBetButton()
+  else clearTimeout(autoBetTimeout)
 }

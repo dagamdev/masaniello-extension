@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Masaniello Pro",
   "version": "2.3.2",
-  "description": "Automatiza la gestión Masaniello en brokers, optimiza tu capital y multiplica tus sesiones con ciclos automáticos y de interés compuesto.",
+  "description": "Automatiza la gestión Masaniello en brokers, optimiza tu capital y multiplica tus sesiones con ciclos automáticos.",
   "permissions": ["scripting", "storage", "tabs"],
   "host_permissions": [
     "https://pocketoption.com/*",

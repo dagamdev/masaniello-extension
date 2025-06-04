@@ -20,6 +20,9 @@ let matris = []
 let features = {
   autoStake: false,
   autoCycle: false,
-  compoundEarnings: false
+  compoundEarnings: false,
+  autoSkipSmallBet: false
 }
 let isPoketOption = window.location.host === 'pocketoption.com'
+
+const pickHosts = ['tronpick.io', 'tonpick.game', 'litepick.io', 'bnbpick.io', 'solpick.io']
